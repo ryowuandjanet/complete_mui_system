@@ -3,6 +3,13 @@ import {FormControl,FormControlLabel,Checkbox as MuiCheckbox} from '@material-ui
 
 export default function Checkbox(props) {
   const {name,label,value,onChange} = props
+
+  const convertToDefEventPara = (name, value) => ({
+    target: {
+      name,value
+    }
+  })
+  
   return (
     <FormControl>
       <FormControlLabel
@@ -10,7 +17,7 @@ export default function Checkbox(props) {
           name={name}
           color="primary"
           checked={value}
-          onChange={onChange} 
+          onChange={e => onChange(convertToDefEventPara(name, e.target.checked))} 
         />}
         label={label}
       />
