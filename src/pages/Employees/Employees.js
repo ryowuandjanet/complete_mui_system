@@ -1,17 +1,23 @@
-import React,{useState} from 'react'
-import EmployeeForm from "./EmployeeForm"
-import PageHeader from '../../components/PageHeader';
+import React, { useState } from 'react'
+import EmployeeForm from "./EmployeeForm";
+import PageHeader from "../../components/PageHeader";
 import PeopleOutlineIcon from '@material-ui/icons/PeopleOutline';
-import { Paper, makeStyles,TableBody, TableRow, TableCell } from '@material-ui/core'
+import { Paper, makeStyles, TableBody, TableRow, TableCell, Toolbar, InputAdornment } from '@material-ui/core';
 import useTable from "../../components/useTable";
 import * as employeeService from "../../services/employeeService";
+import Controls from "../../components/controls/Controls";
+import { Search } from "@material-ui/icons";
 
 const useStyles = makeStyles(theme => ({
   pageContent: {
     margin: theme.spacing(5),
     padding: theme.spacing(3)
+  },
+  searchInput: {
+    width: '75%'
   }
 }))
+
 
 const headCells = [
   { id: 'fullName', label: 'Employee Name' },
@@ -21,13 +27,29 @@ const headCells = [
 ]
 
 export default function Employees() {
-  const classes = useStyles()
+
+  const classes = useStyles();
   const [records, setRecords] = useState(employeeService.getAllEmployees())
+  const [filterFn, setFilterFn] = useState({ fn: items => { return items; } })
 
   const {
     TblContainer,
-    TblHead
-  } = useTable(records, headCells);
+    TblHead,
+    TblPagination,
+    recordsAfterPagingAndSorting
+  } = useTable(records, headCells, filterFn);
+
+  const handleSearch = e => {
+    let target = e.target;
+    setFilterFn({
+      fn: items => {
+        if (target.value == "")
+          return items;
+        else
+          return items.filter(x => x.fullName.toLowerCase().includes(target.value))
+      }
+    })
+  }
 
   return (
     <>
@@ -37,12 +59,24 @@ export default function Employees() {
         icon={<PeopleOutlineIcon fontSize="large" />}
       />
       <Paper className={classes.pageContent}>
-        {/*<EmployeeForm />*/}
+        {/* <EmployeeForm /> */}
+        <Toolbar>
+          <Controls.Input
+            label="Search Employees"
+            className={classes.searchInput}
+            InputProps={{
+              startAdornment: (<InputAdornment position="start">
+                <Search />
+              </InputAdornment>)
+            }}
+            onChange={handleSearch}
+          />
+        </Toolbar>
         <TblContainer>
           <TblHead />
           <TableBody>
             {
-              records.map(item =>
+              recordsAfterPagingAndSorting().map(item =>
                 (<TableRow key={item.id}>
                   <TableCell>{item.fullName}</TableCell>
                   <TableCell>{item.email}</TableCell>
@@ -53,6 +87,7 @@ export default function Employees() {
             }
           </TableBody>
         </TblContainer>
+        <TblPagination />
       </Paper>
     </>
   )
